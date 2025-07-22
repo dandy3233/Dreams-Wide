@@ -21,10 +21,10 @@ const Header = () => {
 
   const navigation = [
     { name: 'Home', href: '/' },
-    { name: 'Jobs', href: '/jobs' },
-    { name: 'Culture', href: '/culture' },
-    { name: 'About', href: '/about' },
-    { name: 'Contact', href: '/contact' },
+    { name: 'Jobs', href: '/Jobs' },
+    { name: 'Culture', href: '/Culture' },
+    { name: 'About', href: '/About' },
+    { name: 'Contact', href: '/Contact' },
   ];
 
   return (
@@ -136,7 +136,7 @@ const Header = () => {
                       </span>
                     </div>
                     <a
-                      href="/dashboard"
+                      href="/Dashboard"
                       className="block text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-base font-medium transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
