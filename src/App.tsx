@@ -27,12 +27,12 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/jobs" element={<Jobs />} />
-            <Route path="/culture" element={<Culture />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
+            <Route path="/Jobs" element={<Jobs />} />
+            <Route path="/Culture" element={<Culture />} />
+            <Route path="/About" element={<About />} />
+            <Route path="/Contact" element={<Contact />} />
             <Route 
-              path="/dashboard" 
+              path="/Dashboard" 
               element={
                 <ProtectedRoute requiredRole="admin">
                   <Dashboard />
