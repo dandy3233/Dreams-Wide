@@ -75,6 +75,8 @@ const CulturePage = () => {
     setShowComments((prev) => ({ ...prev, [postId]: !prev[postId] }));
   };
 
+  
+
   const categories = [
     { id: 'all', name: 'All Content' },
     { id: 'traditions', name: 'Traditions' },

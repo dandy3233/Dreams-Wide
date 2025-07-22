@@ -57,7 +57,7 @@ const CultureForm: React.FC<CultureFormProps> = ({ post, onClose }) => {
     .map((tag: string) => tag.trim())
     .filter((tag: string) => tag),
   author_id: userProfile?.id,              // ✅ for RLS
-  // author: userProfile?.full_name || 'Admin', // optional
+  author: userProfile?.full_name || 'Admin', // optional
 };
 
 

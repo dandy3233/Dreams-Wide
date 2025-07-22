@@ -1,14 +1,13 @@
+// store/cultureStore.ts
+
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/supabase';
-
 
 type CulturalPost = Database['public']['Tables']['cultural_posts']['Row'];
 type CulturalPostInsert = Database['public']['Tables']['cultural_posts']['Insert'];
 type CulturalPostUpdate = Database['public']['Tables']['cultural_posts']['Update'];
 type PostComment = Database['public']['Tables']['post_comments']['Row'];
-
-
 
 interface CultureState {
   posts: CulturalPost[];
@@ -26,16 +25,6 @@ interface CultureState {
   fetchComments: (postId: string) => Promise<void>;
   fetchUserLikes: (userId: string) => Promise<void>;
 }
-
-const { data, error } = await supabase
-  .from('post_likes')
-  .select('*')
-  .eq('post_id', '41b9c443-025f-4e56-a070-f165228fc7c5')
-  .eq('user_id', 'afc3aa63-658d-4bfa-a4ed-c2664bbadd28');
-
-if (error) console.error(error);
-else console.log(data);
-
 
 export const useCultureStore = create<CultureState>((set, get) => ({
   posts: [],
@@ -67,7 +56,7 @@ export const useCultureStore = create<CultureState>((set, get) => ({
       if (imageFile) {
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
-        const { data, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('cultural-posts')
           .upload(fileName, imageFile);
 
@@ -127,24 +116,14 @@ export const useCultureStore = create<CultureState>((set, get) => ({
         .select('*')
         .eq('post_id', postId)
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
-      if (existingError && existingError.code !== 'PGRST116') throw existingError;
+      if (existingError) throw existingError;
 
       if (existing) {
-        // User already liked, so remove like
-        const { error: deleteError } = await supabase
-          .from('post_likes')
-          .delete()
-          .eq('post_id', postId)
-          .eq('user_id', userId);
-        if (deleteError) throw deleteError;
+        await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', userId);
+        await supabase.rpc('decrement_likes', { post_id: postId });
 
-        // Decrement likes_count
-        const { error: updateError } = await supabase.rpc('decrement_likes', { post_id: postId });
-        if (updateError) throw updateError;
-
-        // Update local store
         set((state) => {
           const newLikes = new Set(state.userLikes);
           newLikes.delete(postId);
@@ -156,13 +135,8 @@ export const useCultureStore = create<CultureState>((set, get) => ({
           };
         });
       } else {
-        // Add like
-        const { error: insertError } = await supabase.from('post_likes').insert([{ post_id: postId, user_id: userId }]);
-        if (insertError) throw insertError;
-
-        // Increment likes_count
-        const { error: updateError } = await supabase.rpc('increment_likes', { post_id: postId });
-        if (updateError) throw updateError;
+        await supabase.from('post_likes').insert([{ post_id: postId, user_id: userId }]);
+        await supabase.rpc('increment_likes', { post_id: postId });
 
         set((state) => {
           const newLikes = new Set(state.userLikes);
@@ -177,7 +151,6 @@ export const useCultureStore = create<CultureState>((set, get) => ({
       }
     } catch (error) {
       console.error('Error toggling like:', error);
-      throw error;
     }
   },
 
@@ -193,7 +166,6 @@ export const useCultureStore = create<CultureState>((set, get) => ({
       ]);
       if (error) throw error;
 
-      // Optionally increase comments count locally (or refetch posts)
       set((state) => ({
         posts: state.posts.map((p) =>
           p.id === postId ? { ...p, comments_count: (p.comments_count || 0) + 1 } : p
@@ -201,7 +173,6 @@ export const useCultureStore = create<CultureState>((set, get) => ({
       }));
     } catch (error) {
       console.error('Error adding comment:', error);
-      throw error;
     }
   },
 
